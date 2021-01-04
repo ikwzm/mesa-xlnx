@@ -1,0 +1,12 @@
+Source: mesa-xlnx
+Section: devel
+Priority: optional
+Maintainer: ikwzm <ichiro_k@ca2.so-net.ne.jp>
+Build-Depends: debhelper (>= 9), bzip2
+Standards-Version: 3.9.6
+Homepage: <https://github.com/ikwzm/mesa-xlnx>
+
+Package: libgl1-mesa-xlnx-dri
+Architecture: any
+Depends: libgl1-mesa-dri
+Description: free implementation of the OpenGL API -- xlnx dri module
