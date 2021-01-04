@@ -39,7 +39,7 @@ fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-20.0.8
 ### Patch for xlnx_dri
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.0.8$ patch < ../files/mesa_20.0.8-0ubuntu1~20.04.1-xlnx.diff
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.0.8$ patch -p1 < ../files/mesa_20.0.8-0ubuntu1~20.04.1-xlnx.diff
 ```
 
 ### Build Mesa Debian Package
