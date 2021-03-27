@@ -24,6 +24,11 @@
 #define API_DISPATCH_HPP
 
 #include "CL/cl.h"
+#if defined(__ALTIVEC__) && !defined(__APPLE_ALTIVEC__)
+   #undef vector
+   #undef pixel
+   #undef bool
+#endif
 #include "CL/cl_ext.h"
 #include "CL/cl_egl.h"
 #include "CL/cl_gl.h"

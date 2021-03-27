@@ -132,8 +132,8 @@ check_directories_created(const char *cache_dir)
 {
    bool sub_dirs_created = false;
 
-   char buf[PATH_MAX];
-   if (getcwd(buf, PATH_MAX)) {
+   char *buf = getcwd(NULL, 0);
+   if (buf) {
       char *full_path = NULL;
       if (asprintf(&full_path, "%s%s", buf, ++cache_dir) != -1 ) {
          struct stat sb;
@@ -142,6 +142,7 @@ check_directories_created(const char *cache_dir)
 
          free(full_path);
       }
+      free(buf);
    }
 
    expect_true(sub_dirs_created, "create sub dirs");
