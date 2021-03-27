@@ -1,0 +1,18 @@
+follow the example from cd7acd09b9f8cc68cbe50f9b239029efe7f9cd18
+
+diff --git a/src/gallium/frontends/clover/api/dispatch.hpp b/src/gallium/frontends/clover/api/dispatch.hpp
+index ea835ed6da4..15d9297544d 100644
+--- a/src/gallium/frontends/clover/api/dispatch.hpp
++++ b/src/gallium/frontends/clover/api/dispatch.hpp
+@@ -24,6 +24,11 @@
+ #define API_DISPATCH_HPP
+ 
+ #include "CL/cl.h"
++#if defined(__ALTIVEC__) && !defined(__APPLE_ALTIVEC__)
++   #undef vector
++   #undef pixel
++   #undef bool
++#endif
+ #include "CL/cl_ext.h"
+ #include "CL/cl_egl.h"
+ #include "CL/cl_gl.h"
