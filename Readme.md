@@ -32,57 +32,47 @@ fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get install cmake valgrind libunwind
 ### Download Mesa Source Code
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get source mesa
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-20.0.8
+fpga@ubuntu-fpga:~/work/mesa-xlnx$ apt-get source mesa=20.2.6-0ubuntu0.20.04.1
+fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-20.2.6
 ```
 
 ### Patch for xlnx_dri
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.0.8$ patch -p1 < ../files/mesa_20.0.8-0ubuntu1~20.04.1-xlnx.diff
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ patch -p1 < ../files/mesa-xlnx-20.2.6.diff
 ```
 
 ### Build Mesa Debian Package
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.0.8$ sudo debian/rules binary
-```
-
-### Build libgl1-mesa-xlnx-dri Debian Package
-
-```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.0.8$ cd ..
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo debian/rules binary
-rm -rf debian/tmp
-install -d debian/tmp/DEBIAN debian/tmp/usr/lib/aarch64-linux-gnu/dri
-install --strip mesa-20.0.8/build/src/gallium/targets/dri/libgallium_dri.so debian/tmp/usr/lib/aarch64-linux-gnu/dri/xlnx_dri.so
-dpkg-gencontrol -DArchitecture=arm64
-cp -a debian/postinst       debian/tmp/DEBIAN
-cp -a debian/prerm          debian/tmp/DEBIAN
-cp -a debian/postrm         debian/tmp/DEBIAN
-chown -R root:root debian/tmp
-chmod -u+w,go=rX debian/tmp
-dpkg-deb --build debian/tmp ..
-dpkg-deb: building package 'libgl1-mesa-xlnx-dri' in '../libgl1-mesa-xlnx-dri_20.0.8-0ubuntu1~20.04.1_arm64.deb'.
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ sudo debian/rules binary
 ```
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ dpkg --info ../libgl1-mesa-xlnx-dri_20.0.8-0ubuntu1~20.04.1_arm64.deb
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ dpkg --info ../libgl1-mesa-xlnx-dri_20.2.6-0ubuntu0.20.04.1_arm64.deb 
  new Debian package, version 2.0.
- size 4726204 bytes: control archive=524 bytes.
-     345 bytes,    11 lines      control
-      14 bytes,     2 lines   *  postinst             #!/bin/sh
-      13 bytes,     1 lines   *  postrm               #!/bin/sh
-      14 bytes,     2 lines   *  prerm                #!/bin/sh
+ size 5167796 bytes: control archive=1048 bytes.
+    1095 bytes,    21 lines      control              
+     397 bytes,     5 lines      md5sums              
  Package: libgl1-mesa-xlnx-dri
- Source: mesa-xlnx
- Version: 20.0.8-0ubuntu1~20.04.1
+ Source: mesa
+ Version: 20.2.6-0ubuntu0.20.04.1
  Architecture: arm64
- Maintainer: ikwzm <ichiro_k@ca2.so-net.ne.jp>
- Installed-Size: 16641
- Depends: libgl1-mesa-dri
- Section: devel
+ Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
+ Installed-Size: 18260
+ Depends: libc6 (>= 2.29), libdrm-amdgpu1 (>= 2.4.100), libdrm-nouveau2 (>= 2.4.66), libdrm-radeon1 (>= 2.4.31), libdrm2 (>= 2.4.89), libelf1 (>= 0.142), libexpat1 (>= 2.0.1), libglapi-mesa (= 20.2.6-0ubuntu0.20.04.1), libllvm11 (>= 1:9~svn298832-1~), libsensors5 (>= 1:3.5.0), libstdc++6 (>= 5.2), libunwind8, libzstd1 (>= 1.3.2), zlib1g (>= 1:1.1.4)
+ Section: libs
  Priority: optional
- Homepage: <https://github.com/ikwzm/mesa-xlnx>
+ Multi-Arch: same
+ Homepage: https://mesa3d.org/
  Description: free implementation of the OpenGL API -- xlnx dri module
+  This version of Mesa provides GLX and DRI capabilities: it is capable of
+  both direct and indirect rendering.  For direct rendering, it can use DRI
+  modules from the libgl1-mesa-dri package to accelerate drawing.
+  .
+  This package does not include the OpenGL library itself, only the DRI
+  modules for accelerating direct rendering.
+  .
+  For a complete description of Mesa, please look at the
+  libglx-mesa0 package.
 ```
