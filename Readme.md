@@ -6,43 +6,60 @@ Overview
 
 ### Introduction
 
-This Repository provides an environment for building debian package for the xlnx mesa dri.
+This Repository provides debian package for the xlnx mesa dri driver.
 
-Build Debian Package
+For Ubuntu 20.04
 --------------------
 
-### Requirement
+### Install Debian Package
 
-  * ZynqMP-FPGA-Ubuntu20.04-Ultra96
-
-### Download This Repository
+#### Download
 
 ```console
-fpga@ubuntu-fpga:~/work$ git clone https://github.com/ikwzm/mise-xlnx.git
-fpga@ubuntu-fpga:~/work$ cd mesa-xlnx
+shell$ git clone -b mesa-xlnx-20.2.6-0ubuntu0.20.04.1 https://github.com/ikwzm/mesa-xlnx
 ```
 
-### Install Tools for build Mesa
+#### Install
+
+```console
+shell$ sudo apt-get install ./mesa-xlnx/libgl1-mesa-xlnx-dri_20.2.6-0ubuntu0.20.04.1_arm64.deb
+```
+
+#### Disable Rendering with Lima(if necessary)
+
+The Lima DRI Driver is currently under development, so the application may not work.
+If you want to run an application that doesn't work, set the environment variable LIBGL_ALWAYS_SOFTWARE to 1 when you start gnome-shell to disable rendering with Lima as follows.
+
+```console
+shell$ cat <<EOT > /etc/systemd/user/gnome-shell-x11.service.d/override.conf
+[Service]
+Environment="LIBGL_ALWAYS_SOFTWARE=1"
+EOT
+```
+
+### Build Debian Package
+
+#### Install Tools for build Mesa
 
 ```console
 fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get build-dep mesa
 fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get install cmake valgrind libunwind-dev libconfig-dev
 ```
 
-### Download Mesa Source Code
+#### Download Mesa Source Code
 
 ```console
 fpga@ubuntu-fpga:~/work/mesa-xlnx$ apt-get source mesa=20.2.6-0ubuntu0.20.04.1
 fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-20.2.6
 ```
 
-### Patch for xlnx_dri
+#### Patch for xlnx
 
 ```console
 fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ patch -p1 < ../files/mesa-xlnx-20.2.6.diff
 ```
 
-### Build Mesa Debian Package
+#### Build 
 
 ```console
 fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ sudo debian/rules binary
@@ -76,3 +93,4 @@ fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ dpkg --info ../libgl1-mesa-xlnx-d
   For a complete description of Mesa, please look at the
   libglx-mesa0 package.
 ```
+
