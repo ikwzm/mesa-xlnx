@@ -430,4 +430,23 @@ Description: free implementation of the OpenCL API -- ICD runtime
  provides a standardized interface for computational analysis on graphical
  processing units.
 
+Package: libgl1-mesa-xlnx-dri
+Section: libs
+Architecture: any
+Pre-Depends: ${misc:Pre-Depends}
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends}
+Multi-Arch: same
+Description: free implementation of the OpenGL API -- xlnx dri module
+ This version of Mesa provides GLX and DRI capabilities: it is capable of
+ both direct and indirect rendering.  For direct rendering, it can use DRI
+ modules from the libgl1-mesa-dri package to accelerate drawing.
+ .
+ This package does not include the OpenGL library itself, only the DRI
+ modules for accelerating direct rendering.
+ .
+ For a complete description of Mesa, please look at the
+ libglx-mesa0 package.
+
 # vim: tw=0
