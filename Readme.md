@@ -8,7 +8,7 @@ Overview
 
 This Repository provides debian package for the xlnx mesa dri driver.
 
-For Ubuntu 20.04
+For Ubuntu 20.04.1
 --------------------
 
 ### Install Debian Package
@@ -16,13 +16,13 @@ For Ubuntu 20.04
 #### Download
 
 ```console
-shell$ git clone -b mesa-xlnx-20.2.6-0ubuntu0.20.04.1 https://github.com/ikwzm/mesa-xlnx
+shell$ git clone -b mesa-xlnx-22.2.5-0ubuntu0.1-22.04.1 https://github.com/ikwzm/mesa-xlnx
 ```
 
 #### Install
 
 ```console
-shell$ sudo apt-get install ./mesa-xlnx/libgl1-mesa-xlnx-dri_20.2.6-0ubuntu0.20.04.1_arm64.deb
+shell$ sudo apt-get install ./mesa-xlnx/libgl1-mesa-xlnx-dri_22.2.5-0ubuntu0.1~22.04.1_arm64.deb
 ```
 
 #### Disable Rendering with Lima(if necessary)
@@ -42,42 +42,42 @@ EOT
 #### Install Tools for build Mesa
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get build-dep mesa
+fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get build-dep mesa=22.2.5-0ubuntu0.1~22.04.1
 fpga@ubuntu-fpga:~/work/mesa-xlnx$ sudo apt-get install cmake valgrind libunwind-dev libconfig-dev
 ```
 
 #### Download Mesa Source Code
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ apt-get source mesa=20.2.6-0ubuntu0.20.04.1
-fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-20.2.6
+fpga@ubuntu-fpga:~/work/mesa-xlnx$ apt-get source mesa=22.2.5-0ubuntu0.1~22.04.1
+fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-22.2.5
 ```
 
 #### Patch for xlnx
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ patch -p1 < ../files/mesa-xlnx-20.2.6.diff
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-22.2.5$ patch -p1 < ../files/mesa-xlnx-22.2.5.diff
 ```
 
 #### Build 
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ sudo debian/rules binary
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-22.2.5$ sudo debian/rules binary
 ```
 
 ```console
-fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-20.2.6$ dpkg --info ../libgl1-mesa-xlnx-dri_20.2.6-0ubuntu0.20.04.1_arm64.deb 
+fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-22.2.5$ dpkg --info ../libgl1-mesa-xlnx-dri_22.2.5-0ubuntu0.1~22.04.1_arm64.deb 
  new Debian package, version 2.0.
- size 5167796 bytes: control archive=1048 bytes.
-    1095 bytes,    21 lines      control              
+ size 7266128 bytes: control archive=939 bytes.
+    1109 bytes,    21 lines      control              
      397 bytes,     5 lines      md5sums              
  Package: libgl1-mesa-xlnx-dri
  Source: mesa
- Version: 20.2.6-0ubuntu0.20.04.1
+ Version: 22.2.5-0ubuntu0.1~22.04.1
  Architecture: arm64
  Maintainer: Debian X Strike Force <debian-x@lists.debian.org>
- Installed-Size: 18260
- Depends: libc6 (>= 2.29), libdrm-amdgpu1 (>= 2.4.100), libdrm-nouveau2 (>= 2.4.66), libdrm-radeon1 (>= 2.4.31), libdrm2 (>= 2.4.89), libelf1 (>= 0.142), libexpat1 (>= 2.0.1), libglapi-mesa (= 20.2.6-0ubuntu0.20.04.1), libllvm11 (>= 1:9~svn298832-1~), libsensors5 (>= 1:3.5.0), libstdc++6 (>= 5.2), libunwind8, libzstd1 (>= 1.3.2), zlib1g (>= 1:1.1.4)
+ Installed-Size: 22677
+ Depends: libc6 (>= 2.34), libdrm-amdgpu1 (>= 2.4.105), libdrm-nouveau2 (>= 2.4.66), libdrm-radeon1 (>= 2.4.31), libdrm2 (>= 2.4.89), libelf1 (>= 0.142), libexpat1 (>= 2.0.1), libgcc-s1 (>= 3.0), libglapi-mesa (= 22.2.5-0ubuntu0.1~22.04.1), libllvm15, libsensors5 (>= 1:3.5.0), libstdc++6 (>= 11), libxcb-dri3-0 (>= 1.13), libzstd1 (>= 1.4.0), zlib1g (>= 1:1.1.4)
  Section: libs
  Priority: optional
  Multi-Arch: same
