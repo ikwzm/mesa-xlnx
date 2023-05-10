@@ -8,7 +8,7 @@ Overview
 
 This Repository provides debian package for the xlnx mesa dri driver.
 
-For Ubuntu 20.04.1
+For Ubuntu 22.04.2
 --------------------
 
 ### Install Debian Package
@@ -16,7 +16,7 @@ For Ubuntu 20.04.1
 #### Download
 
 ```console
-shell$ git clone -b mesa-xlnx-22.2.5-0ubuntu0.1-22.04.1 https://github.com/ikwzm/mesa-xlnx
+shell$ git clone -b mesa-xlnx-dri_22.2.5-0ubuntu0.1-22.04.1 https://github.com/ikwzm/mesa-xlnx
 ```
 
 #### Install
