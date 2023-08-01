@@ -1,0 +1,218 @@
+commit ac18e931fa78822722c1de36daf546cb0d940837
+Author: Martin Roukala (né Peres) <martin.roukala@mupuf.org>
+Date:   Thu Nov 24 08:38:17 2022 +0200
+
+    Revert "glx: Fix drawable refcounting for naked Windows"
+    
+    This reverts commit 768238fdc06eed3dce36da3baf811cb70db42b5c which
+    is not only leading to memory leaks, but also reportedly breaks KDE
+    pretty badly.
+    
+    Fixes: #7674, #7435
+    Acked-by: Michel Dänzer <mdaenzer@redhat.com>
+    Acked-by: Tapani Pälli <tapani.palli@intel.com>
+    Acked-by: Adam Jackson <ajax@redhat.com>
+    Signed-off-by: Martin Roukala (né Peres) <martin.roukala@mupuf.org>
+    Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/19972>
+
+--- a/src/broadcom/ci/broadcom-rpi3-fails.txt
++++ b/src/broadcom/ci/broadcom-rpi3-fails.txt
+@@ -102,6 +102,7 @@ spec@glsl-1.20@execution@tex-miplevel-se
+ spec@glsl-1.20@execution@tex-miplevel-selection gl2:textureproj(bias) 3d,Fail
+ spec@khr_texture_compression_astc@basic-gl,Fail
+ 
++glx@glx-make-current,Crash
+ glx@glx-multithread-buffer,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth -pixmap,Fail
+--- a/src/broadcom/ci/broadcom-rpi3-flakes.txt
++++ b/src/broadcom/ci/broadcom-rpi3-flakes.txt
+@@ -5,6 +5,7 @@ dEQP-GLES2.functional.clipping.triangle_
+ dEQP-GLES2.functional.draw.random.51
+ dEQP-GLES2.functional.texture.size.cube.256x256_rgb888
+ 
++glx@glx-multi-window-single-context
+ shaders@glsl-vs-loop
+ shaders@glsl-vs-loop-nested
+ spec@arb_framebuffer_srgb@blit renderbuffer srgb single_sampled enabled clear
+--- a/src/broadcom/ci/broadcom-rpi4-fails.txt
++++ b/src/broadcom/ci/broadcom-rpi4-fails.txt
+@@ -1,3 +1,5 @@
++glx@glx-make-current,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-multithread-buffer,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth -pixmap,Crash
+--- a/src/freedreno/ci/freedreno-a307-fails.txt
++++ b/src/freedreno/ci/freedreno-a307-fails.txt
+@@ -156,6 +156,8 @@ spec@glsl-1.30@execution@interpolation@i
+ spec@glsl-1.30@execution@interpolation@interpolation-noperspective-other-flat-fixed,Fail
+ spec@glsl-1.30@execution@interpolation@interpolation-noperspective-other-smooth-fixed,Fail
+ 
++glx@glx-make-current,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth -pixmap,Crash
+ glx@glx-visuals-stencil -pixmap,Crash
+--- a/src/freedreno/ci/freedreno-a420-fails.txt
++++ b/src/freedreno/ci/freedreno-a420-fails.txt
+@@ -291,6 +291,8 @@ spec@!opengl 2.1@polygon-stipple-fs,Fail
+ spec@ext_packed_float@query-rgba-signed-components,Fail
+ 
+ # Uncategorized piglit failures
++glx@glx-make-current,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-query-drawable-glx_fbconfig_id-window,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth -pixmap,Crash
+--- a/src/freedreno/ci/freedreno-a530-fails.txt
++++ b/src/freedreno/ci/freedreno-a530-fails.txt
+@@ -596,6 +596,8 @@ KHR-GLES3.texture_repeat_mode.rgba32ui_4
+ KHR-GLES3.texture_repeat_mode.rgba32ui_49x23_2_repeat,Fail
+ 
+ glx@glx-multithread-buffer,Fail
++glx@glx-make-current,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-tfp,Fail
+ glx@glx-visuals-depth -pixmap,Crash
+--- a/src/freedreno/ci/freedreno-a630-fails.txt
++++ b/src/freedreno/ci/freedreno-a630-fails.txt
+@@ -47,6 +47,8 @@ glx@glx_ext_import_context@imported cont
+ glx@glx_ext_import_context@make current- multi process,Fail
+ glx@glx_ext_import_context@make current- single process,Fail
+ glx@glx_ext_import_context@query context info,Fail
++glx@glx-make-current,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth -pixmap,Crash
+ glx@glx-visuals-stencil -pixmap,Crash
+--- a/src/gallium/drivers/llvmpipe/ci/llvmpipe-fails.txt
++++ b/src/gallium/drivers/llvmpipe/ci/llvmpipe-fails.txt
+@@ -29,6 +29,13 @@ spec@oes_shader_io_blocks@compiler@layou
+ glx@glx-copy-sub-buffer,Fail
+ glx@glx-copy-sub-buffer samples=2,Fail
+ glx@glx-copy-sub-buffer samples=4,Fail
++
++# X Error of failed request:  BadMatch (invalid parameter attributes)
++#   Major opcode of failed request:  150 (GLX)
++#   Minor opcode of failed request:  11 (X_GLXSwapBuffers)
++glx@glx-make-current,Crash
++
++glx@glx-multi-window-single-context,Fail
+ glx@glx-swap-copy,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ 
+--- a/src/gallium/drivers/softpipe/ci/softpipe-fails.txt
++++ b/src/gallium/drivers/softpipe/ci/softpipe-fails.txt
+@@ -908,8 +908,14 @@ KHR-GLES31.core.texture_storage_multisam
+ 
+ fast_color_clear@fcc-front-buffer-distraction,Fail
+ 
++# X Error of failed request:  BadMatch (invalid parameter attributes)
++#   Major opcode of failed request:  150 (GLX)
++#   Minor opcode of failed request:  11 (X_GLXSwapBuffers)
++glx@glx-make-current,Crash
++
+ 
+ glx@glx-multi-context-front,Fail
++glx@glx-multi-window-single-context,Fail
+ glx@glx-swap-copy,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ 
+--- a/src/gallium/drivers/virgl/ci/virpipe-gl-fails.txt
++++ b/src/gallium/drivers/virgl/ci/virpipe-gl-fails.txt
+@@ -72,6 +72,8 @@ KHR-GL43.transform_feedback_overflow_que
+ KHR-GL43.transform_feedback_overflow_query_ARB.multiple-streams-multiple-buffers-per-stream,Fail
+ KHR-GL43.transform_feedback_overflow_query_ARB.multiple-streams-one-buffer-per-stream,Fail
+ 
++glx@glx-make-current,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-multithread-clearbuffer,Crash
+ glx@glx-multithread-texture,Crash
+ glx@glx-swap-copy,Fail
+--- a/src/gallium/drivers/zink/ci/zink-lvp-flakes.txt
++++ b/src/gallium/drivers/zink/ci/zink-lvp-flakes.txt
+@@ -1,5 +1,6 @@
+ dEQP-GLES2.functional.texture.filtering.cube.nearest_linear_mirror_l8_pot
+ spec@khr_debug@push-pop-group_gl.*
++glx@glx-multi-window-single-context
+ 
+ # "Pending expose event- rerunning."
+ #  exit status: signal: 11"
+--- a/src/gallium/drivers/zink/ci/zink-lvp-skips.txt
++++ b/src/gallium/drivers/zink/ci/zink-lvp-skips.txt
+@@ -10,6 +10,7 @@ KHR-GL46.shader_ballot_tests.ShaderBallo
+ 
+ # ignores copied from the old runner script
+ spec@arb_map_buffer_alignment@arb_map_buffer_alignment-map-invalidate-range
++glx@glx-make-current
+ spec@arb_timer_query.*
+ spec@arb_sample_shading@builtin-gl-sample-mask
+ spec@glsl-1.30@execution@tex-miplevel-selection.*
+--- a/src/gallium/drivers/zink/ci/zink-radv-fails.txt
++++ b/src/gallium/drivers/zink/ci/zink-radv-fails.txt
+@@ -7,6 +7,7 @@ dEQP-GLES3.functional.shaders.texture_fu
+ dEQP-GLES3.functional.shaders.texture_functions.textureprojoffset.sampler2dshadow_vertex,Fail
+ 
+ # kopper
++glx@glx-multi-window-single-context,Crash
+ spec@ext_image_dma_buf_import@ext_image_dma_buf_import-export-tex,Crash
+ spec@egl_chromium_sync_control@conformance@eglGetSyncValuesCHROMIUM_ust_test,Fail
+ 
+@@ -35,6 +36,7 @@ glx@glx_ext_import_context@imported cont
+ glx@glx_ext_import_context@make current- multi process,Fail
+ glx@glx_ext_import_context@make current- single process,Fail
+ glx@glx_ext_import_context@query context info,Fail
++glx@glx-make-current,Crash
+ glx@glx-swap-copy,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth,Crash
+--- a/src/glx/dri_common.c
++++ b/src/glx/dri_common.c
+@@ -417,14 +417,7 @@ driFetchDrawable(struct glx_context *gc,
+       (*pdraw->destroyDrawable) (pdraw);
+       return NULL;
+    }
+-   /* This sure does look suspicious, doesn't it? We're on this path because
+-    * this is a naked Window. GLX 1.3 drawables have an explicit creation
+-    * step (setting refcount to 1), and those we would have found in the
+-    * hash lookup above, bumped their refcount for the bind_context we're
+-    * being called for, and then returned. But since we just created the
+-    * internal naked-Window state, we need to account for both here.
+-    */
+-   pdraw->refcount = 2;
++   pdraw->refcount = 1;
+ 
+    return pdraw;
+ }
+--- a/src/intel/ci/iris-kbl-fails.txt
++++ b/src/intel/ci/iris-kbl-fails.txt
+@@ -13,6 +13,15 @@ dEQP-GLES3.functional.texture.compressed
+ dEQP-GLES3.functional.texture.compressed.astc.void_extent_ldr.8x6,Fail
+ dEQP-GLES3.functional.texture.compressed.astc.void_extent_ldr.8x8,Fail
+ 
++# X Error of failed request:  BadMatch (invalid parameter attributes)
++#   Major opcode of failed request:  151 (GLX)
++#   Minor opcode of failed request:  11 (X_GLXSwapBuffers)
++#   Serial number of failed request:  79
++#   Current serial number in output stream:  80
++glx@glx-make-current,Crash
++
++glx@glx-multi-window-single-context,Fail
++
+ glx@glx-swap-pixmap-bad,Fail
+ 
+ # failed to create drawable
+--- a/src/panfrost/ci/panfrost-g52-fails.txt
++++ b/src/panfrost/ci/panfrost-g52-fails.txt
+@@ -10,7 +10,9 @@ glx@glx_ext_import_context@imported cont
+ glx@glx_ext_import_context@make current- multi process,Fail
+ glx@glx_ext_import_context@make current- single process,Fail
+ glx@glx_ext_import_context@query context info,Fail
++glx@glx-make-current,Crash
+ glx@glx-multithread-clearbuffer,Crash
++glx@glx-multi-window-single-context,Fail
+ glx@glx-swap-pixmap-bad,Fail
+ glx@glx-visuals-depth -pixmap,Crash
+ glx@glx-visuals-stencil -pixmap,Crash

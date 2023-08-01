@@ -1,0 +1,84 @@
+commit e13d53e1fdb8d7ae80901b66248e84ecc6dd9cfe
+Author: Martin Roukala (né Peres) <martin.roukala@mupuf.org>
+Date:   Thu Nov 24 11:55:45 2022 +0200
+
+    Revert "glx/dri: Fix DRI drawable release at MakeCurrent time"
+    
+    This reverts commit 31b04e420b0eb080084c6323066ea0b83929d59e which
+    is also breaking KDE in some ways.
+    
+    Fixes: #7674
+    Acked-by: Michel Dänzer <mdaenzer@redhat.com>
+    Acked-by: Tapani Pälli <tapani.palli@intel.com>
+    Acked-by: Adam Jackson <ajax@redhat.com>
+    Signed-off-by: Martin Roukala (né Peres) <martin.roukala@mupuf.org>
+    Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/19972>
+
+diff --git a/src/glx/dri2_glx.c b/src/glx/dri2_glx.c
+index c000139a74f..af1b8b3fbe5 100644
+--- a/src/glx/dri2_glx.c
++++ b/src/glx/dri2_glx.c
+@@ -123,7 +123,7 @@ dri2_bind_context(struct glx_context *context, struct glx_context *old,
+    pdraw = (struct dri2_drawable *) driFetchDrawable(context, draw);
+    pread = (struct dri2_drawable *) driFetchDrawable(context, read);
+ 
+-   driReleaseDrawables(old);
++   driReleaseDrawables(&pcp->base);
+ 
+    if (pdraw)
+       dri_draw = pdraw->driDrawable;
+diff --git a/src/glx/dri3_glx.c b/src/glx/dri3_glx.c
+index ecfcdee1816..c9656c622fa 100644
+--- a/src/glx/dri3_glx.c
++++ b/src/glx/dri3_glx.c
+@@ -196,7 +196,7 @@ dri3_bind_context(struct glx_context *context, struct glx_context *old,
+    pdraw = (struct dri3_drawable *) driFetchDrawable(context, draw);
+    pread = (struct dri3_drawable *) driFetchDrawable(context, read);
+ 
+-   driReleaseDrawables(old);
++   driReleaseDrawables(&pcp->base);
+ 
+    if (pdraw)
+       dri_draw = pdraw->loader_drawable.dri_drawable;
+diff --git a/src/glx/dri_common.c b/src/glx/dri_common.c
+index 632506dabbd..7e2809d0c79 100644
+--- a/src/glx/dri_common.c
++++ b/src/glx/dri_common.c
+@@ -491,7 +491,7 @@ releaseDrawable(const struct glx_display *priv, GLXDrawable drawable)
+ _X_HIDDEN void
+ driReleaseDrawables(struct glx_context *gc)
+ {
+-   const struct glx_display *priv = (gc && gc->psc) ? gc->psc->display : NULL;
++   const struct glx_display *priv = gc->psc->display;
+ 
+    if (priv == NULL)
+       return;
+diff --git a/src/glx/drisw_glx.c b/src/glx/drisw_glx.c
+index 5849486c393..45050dca5c8 100644
+--- a/src/glx/drisw_glx.c
++++ b/src/glx/drisw_glx.c
+@@ -438,7 +438,7 @@ drisw_bind_context(struct glx_context *context, struct glx_context *old,
+    pdraw = (struct drisw_drawable *) driFetchDrawable(context, draw);
+    pread = (struct drisw_drawable *) driFetchDrawable(context, read);
+ 
+-   driReleaseDrawables(old);
++   driReleaseDrawables(&pcp->base);
+ 
+    if (!(*psc->core->bindContext) (pcp->driContext,
+                                   pdraw ? pdraw->driDrawable : NULL,
+diff --git a/src/glx/driwindows_glx.c b/src/glx/driwindows_glx.c
+index 8c21c5ee58a..3eb961dae3d 100644
+--- a/src/glx/driwindows_glx.c
++++ b/src/glx/driwindows_glx.c
+@@ -88,7 +88,7 @@ driwindows_bind_context(struct glx_context *context, struct glx_context *old,
+    pdraw = (struct driwindows_drawable *) driFetchDrawable(context, draw);
+    pread = (struct driwindows_drawable *) driFetchDrawable(context, read);
+ 
+-   driReleaseDrawables(old);
++   driReleaseDrawables(&pcp->base);
+ 
+    if (pdraw == NULL || pread == NULL)
+       return GLXBadDrawable;
+-- 
+2.39.2
+
