@@ -61,6 +61,7 @@ fpga@ubuntu-fpga:~/work/mesa-xlnx$ patch -p1 < ./files/mesa-xlnx-22.2.5.diff
 #### Build 
 
 ```console
+fpga@ubuntu-fpga:~/work/mesa-xlnx$ cd mesa-22.2.5
 fpga@ubuntu-fpga:~/work/mesa-xlnx/mesa-22.2.5$ sudo debian/rules binary
 ```
 
