@@ -1,0 +1,50 @@
+From ed220b8da811b22b7a8e6ae6c690dfbef1c5274e Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@chromium.org>
+Date: Mon, 31 Oct 2022 11:53:10 -0700
+Subject: [PATCH 3/3] freedreno+tu: Add a690 support
+
+Signed-off-by: Rob Clark <robdclark@chromium.org>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/21573>
+Signed-off-by: Juerg Haefliger <juergh@proton.me>
+---
+ src/freedreno/common/freedreno_devices.py | 24 +++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+diff --git a/src/freedreno/common/freedreno_devices.py b/src/freedreno/common/freedreno_devices.py
+index 4dd66c6a19c0..2b21b43c34f8 100644
+--- a/src/freedreno/common/freedreno_devices.py
++++ b/src/freedreno/common/freedreno_devices.py
+@@ -464,6 +464,30 @@ add_gpus([
+         )
+     ))
+ 
++add_gpus([
++        GPUId(690),
++    ], A6xxGPUInfo(
++        a6xx_gen4,
++        num_ccu = 8,
++        tile_align_w = 64,
++        tile_align_h = 32,
++        magic_regs = dict(
++            PC_POWER_CNTL = 7,
++            TPL1_DBG_ECO_CNTL = 0x01008000,
++            GRAS_DBG_ECO_CNTL = 0x0,
++            SP_CHICKEN_BITS = 0x00001400,
++            UCHE_CLIENT_PF = 0x00000084,
++            PC_MODE_CNTL = 0x1f,
++            SP_DBG_ECO_CNTL = 0x00000000,
++            RB_DBG_ECO_CNTL = 0x00100000,
++            RB_DBG_ECO_CNTL_blit = 0x00100000,  # ???
++            HLSQ_DBG_ECO_CNTL = 0x0,
++            RB_UNKNOWN_8E01 = 0x0,
++            VPC_DBG_ECO_CNTL = 0x02000000,
++            UCHE_UNKNOWN_0E12 = 0x00000001
++        )
++    ))
++
+ template = """\
+ /* Copyright (C) 2021 Google, Inc.
+  *
+-- 
+2.37.2
+

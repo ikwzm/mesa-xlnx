@@ -1,0 +1,204 @@
+From 9ec1ca6c5f646a6ae77759b375963ebd7558aba3 Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@chromium.org>
+Date: Fri, 24 Feb 2023 14:41:14 -0800
+Subject: [PATCH 2/3] freedreno+tu: Big GMEM support
+
+Signed-off-by: Rob Clark <robdclark@chromium.org>
+Part-of: <https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/21573>
+
+[juergh: Drop modifications of .gitlab-ci files]
+Signed-off-by: Juerg Haefliger <juergh@proton.me>
+---
+ src/freedreno/registers/adreno/a6xx.xml       | 12 ++++++----
+ src/freedreno/vulkan/tu_cmd_buffer.c          | 24 +++++++++++++------
+ .../drivers/freedreno/a6xx/fd6_blitter.c      |  3 +--
+ src/gallium/drivers/freedreno/a6xx/fd6_draw.c |  2 +-
+ src/gallium/drivers/freedreno/a6xx/fd6_emit.c | 15 ++++++++++++
+ src/gallium/drivers/freedreno/a6xx/fd6_emit.h |  1 +
+ src/gallium/drivers/freedreno/a6xx/fd6_gmem.c | 12 +++-------
+ 7 files changed, 45 insertions(+), 24 deletions(-)
+
+diff --git a/src/freedreno/registers/adreno/a6xx.xml b/src/freedreno/registers/adreno/a6xx.xml
+index 591e91e829c5..a960d5d25741 100644
+--- a/src/freedreno/registers/adreno/a6xx.xml
++++ b/src/freedreno/registers/adreno/a6xx.xml
+@@ -2343,6 +2343,13 @@ to upconvert to 32b float internally?
+ 	<reg32 offset="0x8e05" name="RB_ADDR_MODE_CNTL" pos="0" type="a5xx_address_mode"/>
+ 	<!-- 0x8e06 invalid -->
+ 	<reg32 offset="0x8e07" name="RB_CCU_CNTL">
++		<!-- concurrent resolves are apparently a 2-bit enum on a650+ -->
++		<bitfield name="CONCURRENT_RESOLVE" pos="2" type="boolean"/>
++		<bitfield name="DEPTH_OFFSET_HI" pos="7" type="hex"/>
++		<bitfield name="COLOR_OFFSET_HI" pos="9" type="hex"/>
++		<!-- GMEM offset of CCU depth cache -->
++		<bitfield name="DEPTH_OFFSET" low="12" high="20" shr="12" type="hex"/>
++		<bitfield name="GMEM" pos="22" type="boolean"/> <!-- set for GMEM path -->
+ 		<!-- GMEM offset of CCU color cache
+ 			for GMEM rendering, we set it to GMEM size minus the minimum
+ 			CCU color cache size. CCU color cache will be needed in some
+@@ -2350,11 +2357,6 @@ to upconvert to 32b float internally?
+ 			of GMEM for color cache.
+ 		-->
+ 		<bitfield name="COLOR_OFFSET" low="23" high="31" shr="12" type="hex"/>
+-		<!-- GMEM offset of CCU depth cache -->
+-		<bitfield name="DEPTH_OFFSET" low="12" high="20" shr="12" type="hex"/>
+-		<bitfield name="GMEM" pos="22" type="boolean"/> <!-- set for GMEM path -->
+-		<!-- concurrent resolves are apparently a 2-bit enum on a650+ -->
+-		<bitfield name="CONCURRENT_RESOLVE" pos="2" type="boolean"/>
+ 		<!--TODO: valid mask 0xfffffc1f -->
+ 	</reg32>
+ 	<reg32 offset="0x8e08" name="RB_NC_MODE_CNTL">
+diff --git a/src/freedreno/vulkan/tu_cmd_buffer.c b/src/freedreno/vulkan/tu_cmd_buffer.c
+index 426e04d96c11..77842ab7b112 100644
+--- a/src/freedreno/vulkan/tu_cmd_buffer.c
++++ b/src/freedreno/vulkan/tu_cmd_buffer.c
+@@ -199,6 +199,18 @@ tu_emit_cache_flush_renderpass(struct tu_cmd_buffer *cmd_buffer)
+                     &cmd_buffer->state.renderpass_cache);
+ }
+ 
++static struct fd_reg_pair
++rb_ccu_cntl(uint32_t color_offset, bool gmem)
++{
++   uint32_t color_offset_hi = color_offset >> 21;
++   color_offset &= 0x1fffff;
++   return A6XX_RB_CCU_CNTL(
++         .color_offset = color_offset,
++         .color_offset_hi = color_offset_hi,
++         .gmem = gmem,
++   );
++}
++
+ /* Cache flushes for things that use the color/depth read/write path (i.e.
+  * blits and draws). This deals with changing CCU state as well as the usual
+  * cache flushing.
+@@ -242,11 +254,10 @@ tu_emit_cache_flush_ccu(struct tu_cmd_buffer *cmd_buffer,
+    if (ccu_state != cmd_buffer->state.ccu_state) {
+       struct tu_physical_device *phys_dev = cmd_buffer->device->physical_device;
+       tu_cs_emit_regs(cs,
+-                      A6XX_RB_CCU_CNTL(.color_offset =
+-                                          ccu_state == TU_CMD_CCU_GMEM ?
+-                                          phys_dev->ccu_offset_gmem :
+-                                          phys_dev->ccu_offset_bypass,
+-                                       .gmem = ccu_state == TU_CMD_CCU_GMEM));
++                      rb_ccu_cntl(ccu_state == TU_CMD_CCU_GMEM ?
++                                  phys_dev->ccu_offset_gmem :
++                                  phys_dev->ccu_offset_bypass,
++                                  ccu_state == TU_CMD_CCU_GMEM));
+       cmd_buffer->state.ccu_state = ccu_state;
+    }
+ }
+@@ -932,8 +943,7 @@ tu6_init_hw(struct tu_cmd_buffer *cmd, struct tu_cs *cs)
+    cmd->state.cache.pending_flush_bits &=
+       ~(TU_CMD_FLAG_WAIT_FOR_IDLE | TU_CMD_FLAG_CACHE_INVALIDATE);
+ 
+-   tu_cs_emit_regs(cs,
+-                   A6XX_RB_CCU_CNTL(.color_offset = phys_dev->ccu_offset_bypass));
++   tu_cs_emit_regs(cs, rb_ccu_cntl(phys_dev->ccu_offset_bypass, false));
+    cmd->state.ccu_state = TU_CMD_CCU_SYSMEM;
+    tu_cs_emit_write_reg(cs, REG_A6XX_RB_DBG_ECO_CNTL,
+                         phys_dev->info->a6xx.magic.RB_DBG_ECO_CNTL);
+diff --git a/src/gallium/drivers/freedreno/a6xx/fd6_blitter.c b/src/gallium/drivers/freedreno/a6xx/fd6_blitter.c
+index 6976e6c707f2..4e95e1deaeab 100644
+--- a/src/gallium/drivers/freedreno/a6xx/fd6_blitter.c
++++ b/src/gallium/drivers/freedreno/a6xx/fd6_blitter.c
+@@ -258,8 +258,7 @@ emit_setup(struct fd_batch *batch)
+ 
+    /* normal BLIT_OP_SCALE operation needs bypass RB_CCU_CNTL */
+    OUT_WFI5(ring);
+-   OUT_PKT4(ring, REG_A6XX_RB_CCU_CNTL, 1);
+-   OUT_RING(ring, A6XX_RB_CCU_CNTL_COLOR_OFFSET(screen->ccu_offset_bypass));
++   fd6_emit_ccu_cntl(ring, screen, false);
+ }
+ 
+ static void
+diff --git a/src/gallium/drivers/freedreno/a6xx/fd6_draw.c b/src/gallium/drivers/freedreno/a6xx/fd6_draw.c
+index 525dcd814688..1e95a226793a 100644
+--- a/src/gallium/drivers/freedreno/a6xx/fd6_draw.c
++++ b/src/gallium/drivers/freedreno/a6xx/fd6_draw.c
+@@ -377,7 +377,7 @@ fd6_clear_lrz(struct fd_batch *batch, struct fd_resource *zsbuf, double depth) a
+ 
+    OUT_WFI5(ring);
+ 
+-   OUT_REG(ring, A6XX_RB_CCU_CNTL(.color_offset = screen->ccu_offset_bypass));
++   fd6_emit_ccu_cntl(ring, screen, false);
+ 
+    OUT_REG(ring,
+            A6XX_HLSQ_INVALIDATE_CMD(.vs_state = true, .hs_state = true,
+diff --git a/src/gallium/drivers/freedreno/a6xx/fd6_emit.c b/src/gallium/drivers/freedreno/a6xx/fd6_emit.c
+index 98577637fc81..fc769e3ecfa4 100644
+--- a/src/gallium/drivers/freedreno/a6xx/fd6_emit.c
++++ b/src/gallium/drivers/freedreno/a6xx/fd6_emit.c
+@@ -959,6 +959,21 @@ fd6_emit_cs_state(struct fd_context *ctx, struct fd_ringbuffer *ring,
+    }
+ }
+ 
++void
++fd6_emit_ccu_cntl(struct fd_ringbuffer *ring, struct fd_screen *screen, bool gmem)
++{
++   uint32_t offset = gmem ? screen->ccu_offset_gmem : screen->ccu_offset_bypass;
++   uint32_t offset_hi = offset >> 21;
++   offset &= 0x1fffff;
++
++   OUT_REG(ring, A6XX_RB_CCU_CNTL(
++         .concurrent_resolve = gmem && screen->info->a6xx.concurrent_resolve,
++         .color_offset_hi = offset_hi,
++         .gmem = gmem,
++         .color_offset = offset,
++   ));
++}
++
+ /* emit setup at begin of new cmdstream buffer (don't rely on previous
+  * state, there could have been a context switch between ioctls):
+  */
+diff --git a/src/gallium/drivers/freedreno/a6xx/fd6_emit.h b/src/gallium/drivers/freedreno/a6xx/fd6_emit.h
+index f60d1b82c21c..fdfef2cd90a5 100644
+--- a/src/gallium/drivers/freedreno/a6xx/fd6_emit.h
++++ b/src/gallium/drivers/freedreno/a6xx/fd6_emit.h
+@@ -321,6 +321,7 @@ void fd6_emit_3d_state(struct fd_ringbuffer *ring,
+ void fd6_emit_cs_state(struct fd_context *ctx, struct fd_ringbuffer *ring,
+                        struct ir3_shader_variant *cp) assert_dt;
+ 
++void fd6_emit_ccu_cntl(struct fd_ringbuffer *ring, struct fd_screen *screen, bool gmem);
+ void fd6_emit_restore(struct fd_batch *batch, struct fd_ringbuffer *ring);
+ 
+ void fd6_emit_init_screen(struct pipe_screen *pscreen);
+diff --git a/src/gallium/drivers/freedreno/a6xx/fd6_gmem.c b/src/gallium/drivers/freedreno/a6xx/fd6_gmem.c
+index 5542ff82f97c..faf23953f7f9 100644
+--- a/src/gallium/drivers/freedreno/a6xx/fd6_gmem.c
++++ b/src/gallium/drivers/freedreno/a6xx/fd6_gmem.c
+@@ -765,10 +765,7 @@ emit_binning_pass(struct fd_batch *batch) assert_dt
+ 
+    OUT_WFI5(ring);
+ 
+-   OUT_REG(ring,
+-           A6XX_RB_CCU_CNTL(.color_offset = screen->ccu_offset_gmem,
+-                            .gmem = true,
+-                            .concurrent_resolve = screen->info->a6xx.concurrent_resolve));
++   fd6_emit_ccu_cntl(ring, screen, true);
+ }
+ 
+ static void
+@@ -833,10 +830,7 @@ fd6_emit_tile_init(struct fd_batch *batch) assert_dt
+    OUT_RING(ring, 0x1);
+ 
+    fd_wfi(batch, ring);
+-   OUT_REG(ring,
+-           A6XX_RB_CCU_CNTL(.color_offset = screen->ccu_offset_gmem,
+-                            .gmem = true,
+-                            .concurrent_resolve = screen->info->a6xx.concurrent_resolve));
++   fd6_emit_ccu_cntl(ring, screen, true);
+ 
+    emit_zs(ring, pfb->zsbuf, batch->gmem_state);
+    emit_mrt(ring, pfb, batch->gmem_state);
+@@ -1616,7 +1610,7 @@ fd6_emit_sysmem_prep(struct fd_batch *batch) assert_dt
+    fd6_cache_inv(batch, ring);
+ 
+    fd_wfi(batch, ring);
+-   OUT_REG(ring, A6XX_RB_CCU_CNTL(.color_offset = screen->ccu_offset_bypass));
++   fd6_emit_ccu_cntl(ring, screen, false);
+ 
+    /* enable stream-out, with sysmem there is only one pass: */
+    OUT_REG(ring, A6XX_VPC_SO_DISABLE(false));
+-- 
+2.37.2
+
