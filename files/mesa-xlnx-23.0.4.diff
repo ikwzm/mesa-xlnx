@@ -1,0 +1,70 @@
+diff --git a/mesa-23.0.4/debian/control b/mesa-23.0.4/debian/control
+index 316454c..44f84ac 100644
+--- a/mesa-23.0.4/debian/control
++++ b/mesa-23.0.4/debian/control
+@@ -306,6 +306,25 @@ Description: free implementation of the OpenGL API -- DRI modules
+  For a complete description of Mesa, please look at the
+  libglx-mesa0 package.
+ 
++Package: libgl1-mesa-xlnx-dri
++Section: libs
++Architecture: any
++Pre-Depends: ${misc:Pre-Depends}
++Depends:
++ ${shlibs:Depends},
++ ${misc:Depends}
++Multi-Arch: same
++Description: free implementation of the OpenGL API -- xlnx dri module
++ This version of Mesa provides GLX and DRI capabilities: it is capable of
++ both direct and indirect rendering.  For direct rendering, it can use DRI
++ modules from the libgl1-mesa-dri package to accelerate drawing.
++ .
++ This package does not include the OpenGL library itself, only the DRI
++ modules for accelerating direct rendering.
++ .
++ For a complete description of Mesa, please look at the
++ libglx-mesa0 package.
++
+ Package: libgl1-mesa-dev
+ Section: oldlibs
+ Architecture: any
+diff --git a/mesa-23.0.4/debian/rules b/mesa-23.0.4/debian/rules
+index 1285d93..73fe646 100755
+--- a/mesa-23.0.4/debian/rules
++++ b/mesa-23.0.4/debian/rules
+@@ -251,6 +251,11 @@ override_dh_install:
+ 	# use -f here though
+ 	rm -f debian/tmp/usr/lib/*/libgrl.a
+ 
++	# Copy the hardlinked xlnx_dri.so correctly.
++	install -m755 -d debian/libgl1-mesa-xlnx-dri/usr/lib/${DEB_HOST_MULTIARCH}/dri/
++	cp debian/tmp/usr/lib/${DEB_HOST_MULTIARCH}/dri/xlnx_dri.so \
++	   debian/libgl1-mesa-xlnx-dri/usr/lib/${DEB_HOST_MULTIARCH}/dri/
++
+ 	# Copy the hardlinked *_dri.so correctly.
+ 	install -m755 -d debian/libgl1-mesa-dri/usr/lib/${DEB_HOST_MULTIARCH}/dri/
+ 	mv debian/tmp/usr/lib/${DEB_HOST_MULTIARCH}/dri/*_dri.so \
+diff --git a/mesa-23.0.4/src/gallium/targets/dri/meson.build b/mesa-23.0.4/src/gallium/targets/dri/meson.build
+index d0a9b91..194b0f6 100644
+--- a/mesa-23.0.4/src/gallium/targets/dri/meson.build
++++ b/mesa-23.0.4/src/gallium/targets/dri/meson.build
+@@ -92,6 +92,7 @@ foreach d : [[with_gallium_kmsro, [
+                'st7735r_dri.so',
+                'stm_dri.so',
+ 	       'sun4i-drm_dri.so',
++	       'xlnx_dri.so',
+              ]],
+              [with_gallium_radeonsi, 'radeonsi_dri.so'],
+              [with_gallium_nouveau, 'nouveau_dri.so'],
+diff --git a/mesa-23.0.4/src/gallium/targets/dri/target.c b/mesa-23.0.4/src/gallium/targets/dri/target.c
+index d506869..9bae02e 100644
+--- a/mesa-23.0.4/src/gallium/targets/dri/target.c
++++ b/mesa-23.0.4/src/gallium/targets/dri/target.c
+@@ -122,6 +122,7 @@ DEFINE_LOADER_DRM_ENTRYPOINT(st7586)
+ DEFINE_LOADER_DRM_ENTRYPOINT(st7735r)
+ DEFINE_LOADER_DRM_ENTRYPOINT(stm)
+ DEFINE_LOADER_DRM_ENTRYPOINT(sun4i_drm)
++DEFINE_LOADER_DRM_ENTRYPOINT(xlnx)
+ #endif
+ 
+ #if defined(GALLIUM_LIMA)
