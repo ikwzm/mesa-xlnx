@@ -12,12 +12,12 @@ This Repository provides debian package for the xlnx mesa dri driver.
 Release
 --------------------
 
-| Ubuntu Version | Debian Package                                           | Git Branch     |
-|:---------------|:---------------------------------------------------------|:---------------|
-| 22.04.3        | libgl1-mesa-xlnx-dri_23.0.4-0ubuntu1~22.04.1_arm64.deb   | [mesa-xlnx-dri_23.0.4-0ubuntu1-22.04.1](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-dri_23.0.4-0ubuntu1-22.04.1)
-| 22.04.2        | libgl1-mesa-xlnx-dri_22.2.5-0ubuntu0.1~22.04.3_arm64.deb | [mesa-xlnx-dri_22.2.5-0ubuntu0.1-22.04.3](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-dri_22.2.5-0ubuntu0.1-22.04.3)
-| 22.04.1        | libgl1-mesa-xlnx-dri_22.0.5-0ubuntu0.1_arm64.deb         | [mesa-xlnx-dri_22.0.5-0ubuntu0.1](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-dri_22.0.5-0ubuntu0.1)
-| 20.04          | libgl1-mesa-xlnx-dri_20.2.6-0ubuntu0~20.04.1_arm64.deb   | [mesa-xlnx-20.2.6-0ubuntu0.20.04.1](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-20.2.6-0ubuntu0.20.04.1)
+| Ubuntu Version | Mesa Version   | Release Branch     |
+|:---------------|:---------------|:-------------------|
+| 22.04.3        | 23.0.4         | [mesa-xlnx-dri_23.0.4-0ubuntu1-22.04.1](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-dri_23.0.4-0ubuntu1-22.04.1) |
+| 22.04.2        | 22.2.5         | [mesa-xlnx-dri_22.2.5-0ubuntu0.1-22.04.3](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-dri_22.2.5-0ubuntu0.1-22.04.3) |
+| 22.04.1        | 22.0.5         | [mesa-xlnx-dri_22.0.5-0ubuntu0.1](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-dri_22.0.5-0ubuntu0.1) |
+| 20.04          | 20.2.6         | [mesa-xlnx-20.2.6-0ubuntu0.20.04.1](https://github.com/ikwzm/mesa-xlnx/tree/mesa-xlnx-20.2.6-0ubuntu0.20.04.1) |
 
 Install
 --------------------
