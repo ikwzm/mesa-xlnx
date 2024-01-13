@@ -70,10 +70,12 @@
 #endif
 #endif
 
+#ifndef __NO_FPRS__
 #if defined(__ppc__) || defined(__ppc64__) || defined(__PPC__) || defined(__PPC64__)
 #define DETECT_ARCH_PPC 1
 #if defined(__ppc64__) || defined(__PPC64__)
 #define DETECT_ARCH_PPC_64 1
+#endif
 #endif
 #endif
 
