@@ -127,4 +127,9 @@ renderonly_create_gpu_import_for_resource(struct pipe_resource *rsc,
                                           struct renderonly *ro,
                                           struct winsys_handle *out_handle);
 
+/**
+ * Probe drm xlnx for renderonly initialize.
+ */
+bool renderonly_probe_drm_xlnx(struct renderonly *ro);
+
 #endif /* RENDERONLY_H_ */

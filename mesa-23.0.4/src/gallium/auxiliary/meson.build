@@ -302,6 +302,7 @@ if dep_libdrm.found()
   files_libgallium += files(
     'renderonly/renderonly.c',
     'renderonly/renderonly.h',
+    'renderonly/renderonly_drm_xlnx.c',
   )
 endif
 
